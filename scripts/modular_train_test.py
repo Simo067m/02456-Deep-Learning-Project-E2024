@@ -34,6 +34,7 @@ DEVICE = (
 # (only the best model so far is saved)
 # LOAD_MODEL_FNAME = None
 LOAD_MODEL_PATH = f"model_{MODEL.__name__}_noble-meadow-16"
+LOAD_MODEL_FNAME = None
 
 # CONSTANTS TO LEAVE
 DATA_ROOT = Path(f"/dtu-compute/maalhe/tm/02456/data") 
