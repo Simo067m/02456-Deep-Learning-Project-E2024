@@ -37,7 +37,7 @@ LOAD_MODEL_PATH = f"model_{MODEL.__name__}_noble-meadow-16"
 LOAD_MODEL_FNAME = None
 
 # CONSTANTS TO LEAVE
-DATA_ROOT = Path(f"/dtu-compute/maalhe/tm/02456/data") 
+DATA_ROOT = Path(f"/dtu-compute/02456-p4-e24/data") 
 ROOT = Path(__file__).parent.parent
 MODEL_DIR = ROOT / "models"
 STMF_FILENAME = "stmf_data_3.csv"
@@ -219,3 +219,4 @@ if __name__ == "__main__":
         epoch_number += 1
 
     wandb.finish()
+
