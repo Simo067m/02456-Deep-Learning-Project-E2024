@@ -47,7 +47,7 @@ TS_CROPTWIDTH = (-150, 200)
 VR_CROPTWIDTH = (-60, 15)
 
 
-def train_one_epoch(loss_fn, model, train_data_loader):
+def train_one_epoch(loss_fn, model, train_data_loader, optimizer):
     running_loss = 0.
     last_loss = 0.
     total_loss = 0.
@@ -163,7 +163,7 @@ if __name__ == "__main__":
         model.train(True)
 
         # Do a pass over the training data and get the average training MSE loss
-        avg_loss = train_one_epoch(MODEL.loss_fn, model, train_data_loader)
+        avg_loss = train_one_epoch(MODEL.loss_fn, model, train_data_loader, optimizer)
         
         # Calculate the root mean squared error: This gives
         # us the opportunity to evaluate the loss as an error
