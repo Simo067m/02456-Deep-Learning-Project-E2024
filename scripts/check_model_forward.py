@@ -36,9 +36,11 @@ def check_model_forward(model):
                                     shuffle=True,
                                     num_workers=NUM_WORKERS)
 
-    sample_batch = train_data_loader.dataset[0]
-    spectogram = sample_batch["spectrogram"]
-    output = model(spectogram)
+    for i, data in enumerate(train_data_loader):
+        spectrogram, target = data["spectrogram"], data["target"]
+        break
+
+    output = model(spectrogram)
     print(f"output : {output}")
     print(f"output shape: {output.shape}")
     return output
