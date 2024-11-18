@@ -16,10 +16,11 @@ GROUP_NUMBER = 74
 # CONSTANTS TO MODIFY AS YOU WISH
 MODEL = SpectrVelCNNRegr
 LEARNING_RATE = 10**-5
+WEIGHT_DECAY = 10**-3
 EPOCHS = 100 # the model converges in test perfermance after ~250-300 epochs
 BATCH_SIZE = 10
 NUM_WORKERS = 10
-OPTIMIZER = torch.optim.SGD
+OPTIMIZER = torch.optim.Adam
 DEVICE = (
     "cuda"
     if torch.cuda.is_available()
@@ -120,7 +121,10 @@ if __name__ == "__main__":
         model = MODEL().to(DEVICE)
         model.apply(weights_init_uniform_rule)
 
-    optimizer = OPTIMIZER(model.parameters(), lr=LEARNING_RATE, momentum=0.9)
+    if (OPTIMIZER.__name__ == "SGD"):
+        optimizer = OPTIMIZER(model.parameters(), lr=LEARNING_RATE, momentum=0.9)
+    elif (OPTIMIZER.__name__ == "Adam"):
+        optimizer = OPTIMIZER(model.parameters(), lr=LEARNING_RATE, )
     
     
     # Set up wandb for reporting
@@ -128,6 +132,7 @@ if __name__ == "__main__":
         project=f"02456_group_{GROUP_NUMBER}",
         config={
             "learning_rate": LEARNING_RATE,
+            "weight_decay": WEIGHT_DECAY,
             "architecture": MODEL.__name__,
             "dataset": MODEL.dataset.__name__,
             "epochs": EPOCHS,
