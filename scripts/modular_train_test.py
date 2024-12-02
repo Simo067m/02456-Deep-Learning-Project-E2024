@@ -8,6 +8,7 @@ import wandb
 
 from custom_transforms import LoadSpectrogram, NormalizeSpectrogram, ToTensor, InterpolateSpectrogram
 from data_management import make_dataset_name
+from check_model_complexity import print_model_complexity
 from models import SpectrVelCNNRegr, weights_init_uniform_rule, SpectrCNN_5_layers, SpectrCNN_5_layers_dropout
 from models import SpectrRNN
 
@@ -141,7 +142,8 @@ if __name__ == "__main__":
             "transform": "|".join([str(tr).split(".")[1].split(" ")[0] for tr in dataset_train.transform.transforms]),
             "optimizer": OPTIMIZER.__name__,
             "loss_fn": model.loss_fn.__name__,
-            "nfft": NFFT
+            "nfft": NFFT,
+            "num_parameters": print_model_complexity(MODEL, return_params=True)
         }
     )
 
