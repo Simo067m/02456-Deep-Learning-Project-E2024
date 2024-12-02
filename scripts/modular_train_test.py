@@ -8,17 +8,18 @@ import wandb
 
 from custom_transforms import LoadSpectrogram, NormalizeSpectrogram, ToTensor, InterpolateSpectrogram
 from data_management import make_dataset_name
-from models import SpectrVelCNNRegr, weights_init_uniform_rule
+from models import SpectrVelCNNRegr, weights_init_uniform_rule, SpectrCNN_5_layers, SpectrCNN_5_layers_dropout
+from models import SpectrRNN
 
 # GROUP NUMBER
 GROUP_NUMBER = 74
 
 # CONSTANTS TO MODIFY AS YOU WISH
-MODEL = SpectrVelCNNRegr
-LEARNING_RATE = 10**-5
+MODEL = SpectrRNN
+LEARNING_RATE = 10**-4
 WEIGHT_DECAY = 10**-3
-EPOCHS = 100 # the model converges in test perfermance after ~250-300 epochs
-BATCH_SIZE = 10
+EPOCHS = 250 # the model converges in test perfermance after ~250-300 epochs
+BATCH_SIZE = 32
 NUM_WORKERS = 10
 OPTIMIZER = torch.optim.Adam
 DEVICE = (

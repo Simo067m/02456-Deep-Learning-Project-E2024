@@ -16,7 +16,7 @@ GROUP_NUMBER = 74
 
 # CONSTANTS TO MODIFY AS YOU WISH
 MODEL = SpectrVelCNNRegr
-EPOCHS = 300 # the model converges in test perfermance after ~250-300 epochs
+EPOCHS = 250 # the model converges in test perfermance after ~250-300 epochs
 NUM_WORKERS = 10
 DEVICE = (
     "cuda"
