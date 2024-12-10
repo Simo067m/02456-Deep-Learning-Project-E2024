@@ -5,6 +5,7 @@ from custom_transforms import LoadSpectrogram, NormalizeSpectrogram, ToTensor, I
 import torch.nn as nn
 from data_management import make_dataset_name
 from pathlib import Path
+import time
 
 # CONSTANTS TO LEAVE
 DATA_ROOT = Path(f"/dtu-compute/02456-p4-e24/data") 
@@ -20,7 +21,36 @@ def get_flops(model : nn.Module, batch_size : int):
 
     flops = FlopCountAnalysis(model, input_tensor)
     print(f"FLOPS: {flops.total()}")
+    print(f"FLOPS formatted: {format_flops(flops.total())}")
     print(flops.by_module())
+
+def format_flops(flops_value):
+    if flops_value < 1e3:
+        return f"{flops_value:.2f} FLOPS"
+    elif flops_value < 1e6:
+        return f"{flops_value / 1e3:.2f} K FLOPS"
+    elif flops_value < 1e9:
+        return f"{flops_value / 1e6:.2f} M FLOPS"
+    else:
+        return f"{flops_value / 1e9:.2f} G FLOPS"
+
+def get_inference_rate(model : nn.Module, batch_size : int, num_runs : int = 100):
+    input_tensor = get_input_tensor(model, batch_size)
+    for _ in range(10):
+        _ = model(input_tensor)
+
+    # Measure inference time
+    start_time = time.time()
+    for _ in range(num_runs):
+        _ = model(input_tensor)
+    end_time = time.time()
+
+    # Calculate inference rate
+    total_time = end_time - start_time
+    average_time_per_inference = total_time / num_runs
+    inference_rate = 1 / average_time_per_inference  # Batches per second (BPS)
+
+    print(f"Inference Rate: {inference_rate:.2f} Batches per second")
 
 def get_input_tensor(model : nn.Module, batch_size : int):
     NUM_WORKERS = 10
