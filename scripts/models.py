@@ -788,7 +788,310 @@ class SpectrHybridNet2(nn.Module):
         
         # Final regression
         return self.regressor(context)
+
+class SpectrHybridNet3(nn.Module):
+    loss_fn = mse_loss
+    dataset = SpectrogramDataset
     
+    def __init__(self, dropout_rate=0.2):
+        super().__init__()
+        
+        # Medium-sized CNN Feature Extractor
+        self.cnn_features = nn.Sequential(
+            # First Conv Block
+            nn.Conv2d(in_channels=6, out_channels=64, kernel_size=5, stride=2),
+            nn.BatchNorm2d(64),
+            nn.LeakyReLU(0.1),
+            nn.MaxPool2d(2),
+            nn.Dropout2d(dropout_rate),
+            
+            # Second Conv Block with Residual Connection
+            nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(64),
+            nn.LeakyReLU(0.1),
+            nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(64),
+            nn.LeakyReLU(0.1),
+            nn.MaxPool2d(2),
+            nn.Dropout2d(dropout_rate),
+            
+            # Third Conv Block
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=2),
+            nn.BatchNorm2d(128),
+            nn.LeakyReLU(0.1),
+            
+            # Fourth Conv Block (smaller than large version)
+            nn.Conv2d(in_channels=128, out_channels=192, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(192),
+            nn.LeakyReLU(0.1),
+            nn.Dropout2d(dropout_rate),
+            
+            nn.AdaptiveAvgPool2d((8, 25))
+        )
+        
+        self.lstm_input_size = 192 * 25  # Adjusted channels * width
+        
+        # Medium-sized LSTM
+        self.lstm = nn.LSTM(
+            input_size=self.lstm_input_size,
+            hidden_size=256,  # Between original and large version
+            num_layers=3,     # Same as original
+            batch_first=True,
+            dropout=dropout_rate,
+            bidirectional=True
+        )
+        
+        # Medium-sized attention mechanism
+        self.attention = nn.Sequential(
+            nn.Linear(512, 192),  # 512 from bidirectional LSTM (256*2)
+            nn.LeakyReLU(0.1),
+            nn.Linear(192, 1)
+        )
+        
+        # Medium-sized Regression Head
+        self.regressor = nn.Sequential(
+            nn.Linear(512, 256),
+            nn.LeakyReLU(0.1),
+            nn.Dropout(dropout_rate),
+            nn.Linear(256, 128),
+            nn.LeakyReLU(0.1),
+            nn.Dropout(dropout_rate),
+            nn.Linear(128, 32),
+            nn.LeakyReLU(0.1),
+            nn.Dropout(dropout_rate/2),
+            nn.Linear(32, 1)
+        )
+        
+    def attention_net(self, lstm_output):
+        attention_weights = self.attention(lstm_output)
+        attention_weights = torch.softmax(attention_weights, dim=1)
+        context = torch.sum(attention_weights * lstm_output, dim=1)
+        return context
+        
+    def forward(self, x):
+        batch_size = x.size(0)
+        
+        # CNN Feature Extraction
+        cnn_out = self.cnn_features(x)
+        
+        # Reshape for LSTM
+        cnn_out = cnn_out.permute(0, 2, 1, 3)
+        cnn_out = cnn_out.reshape(batch_size, 8, self.lstm_input_size)
+        
+        # LSTM processing
+        lstm_out, _ = self.lstm(cnn_out)
+        
+        # Apply attention
+        context = self.attention_net(lstm_out)
+        
+        # Final regression
+        return self.regressor(context)
+
+
+class SpectrHybridNet4(nn.Module):
+    loss_fn = mse_loss
+    dataset = SpectrogramDataset
+    
+    def __init__(self, dropout_rate=0.2):
+        super().__init__()
+        
+        # Larger CNN Feature Extractor
+        self.cnn_features = nn.Sequential(
+            # First Conv Block
+            nn.Conv2d(in_channels=6, out_channels=80, kernel_size=5, stride=2),
+            nn.BatchNorm2d(80),
+            nn.LeakyReLU(0.1),
+            nn.MaxPool2d(2),
+            nn.Dropout2d(dropout_rate),
+            
+            # Second Conv Block with Residual Connection
+            nn.Conv2d(in_channels=80, out_channels=80, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(80),
+            nn.LeakyReLU(0.1),
+            nn.Conv2d(in_channels=80, out_channels=80, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(80),
+            nn.LeakyReLU(0.1),
+            nn.MaxPool2d(2),
+            nn.Dropout2d(dropout_rate),
+            
+            # Third Conv Block
+            nn.Conv2d(in_channels=80, out_channels=160, kernel_size=3, stride=2),
+            nn.BatchNorm2d(160),
+            nn.LeakyReLU(0.1),
+            
+            # Fourth Conv Block
+            nn.Conv2d(in_channels=160, out_channels=224, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(224),
+            nn.LeakyReLU(0.1),
+            nn.Dropout2d(dropout_rate),
+            
+            nn.AdaptiveAvgPool2d((8, 25))
+        )
+        
+        self.lstm_input_size = 224 * 25  # Adjusted channels * width
+        
+        # Larger LSTM
+        self.lstm = nn.LSTM(
+            input_size=self.lstm_input_size,
+            hidden_size=320,  # Increased from medium version
+            num_layers=3,
+            batch_first=True,
+            dropout=dropout_rate,
+            bidirectional=True
+        )
+        
+        # Enhanced attention mechanism
+        self.attention = nn.Sequential(
+            nn.Linear(640, 224),  # 640 from bidirectional LSTM (320*2)
+            nn.LeakyReLU(0.1),
+            nn.Linear(224, 96),
+            nn.Tanh(),
+            nn.Linear(96, 1)
+        )
+        
+        # Enhanced Regression Head
+        self.regressor = nn.Sequential(
+            nn.Linear(640, 320),
+            nn.LeakyReLU(0.1),
+            nn.Dropout(dropout_rate),
+            nn.Linear(320, 160),
+            nn.LeakyReLU(0.1),
+            nn.Dropout(dropout_rate),
+            nn.Linear(160, 48),
+            nn.LeakyReLU(0.1),
+            nn.Dropout(dropout_rate/2),
+            nn.Linear(48, 1)
+        )
+        
+    def attention_net(self, lstm_output):
+        attention_weights = self.attention(lstm_output)
+        attention_weights = torch.softmax(attention_weights, dim=1)
+        context = torch.sum(attention_weights * lstm_output, dim=1)
+        return context
+        
+    def forward(self, x):
+        batch_size = x.size(0)
+        
+        # CNN Feature Extraction
+        cnn_out = self.cnn_features(x)
+        
+        # Reshape for LSTM
+        cnn_out = cnn_out.permute(0, 2, 1, 3)
+        cnn_out = cnn_out.reshape(batch_size, 8, self.lstm_input_size)
+        
+        # LSTM processing
+        lstm_out, _ = self.lstm(cnn_out)
+        
+        # Apply attention
+        context = self.attention_net(lstm_out)
+        
+        # Final regression
+        return self.regressor(context)
+
+
+class SpectrHybridNet5(nn.Module):
+    loss_fn = mse_loss
+    dataset = SpectrogramDataset
+    
+    def __init__(self, dropout_rate=0.2):
+        super().__init__()
+        
+        # Increased CNN Feature Extractor with more channels and layers
+        self.cnn_features = nn.Sequential(
+            # First Conv Block - Increased channels
+            nn.Conv2d(in_channels=6, out_channels=96, kernel_size=5, stride=2),
+            nn.BatchNorm2d(96),
+            nn.LeakyReLU(0.1),
+            nn.MaxPool2d(2),
+            nn.Dropout2d(dropout_rate),
+            
+            # Second Conv Block with double Residual Connection
+            nn.Conv2d(in_channels=96, out_channels=96, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(96),
+            nn.LeakyReLU(0.1),
+            nn.Conv2d(in_channels=96, out_channels=96, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(96),
+            nn.LeakyReLU(0.1),
+            nn.Conv2d(in_channels=96, out_channels=96, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(96),
+            nn.LeakyReLU(0.1),
+            nn.MaxPool2d(2),
+            nn.Dropout2d(dropout_rate),
+            
+            # Third Conv Block - Increased channels
+            nn.Conv2d(in_channels=96, out_channels=192, kernel_size=3, stride=2),
+            nn.BatchNorm2d(192),
+            nn.LeakyReLU(0.1),
+            
+            # Fourth Conv Block (additional)
+            nn.Conv2d(in_channels=192, out_channels=256, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(256),
+            nn.LeakyReLU(0.1),
+            nn.Dropout2d(dropout_rate),
+            
+            nn.AdaptiveAvgPool2d((8, 25))
+        )
+        
+        self.lstm_input_size = 256 * 25  # Increased channels * width
+        
+        # Larger LSTM with more layers and hidden units
+        self.lstm = nn.LSTM(
+            input_size=self.lstm_input_size,
+            hidden_size=384,  # Doubled hidden size
+            num_layers=4,     # Added another layer
+            batch_first=True,
+            dropout=dropout_rate,
+            bidirectional=True
+        )
+        
+        # Enhanced attention mechanism with more units
+        self.attention = nn.Sequential(
+            nn.Linear(768, 256),  # 768 from bidirectional LSTM (384*2)
+            nn.LeakyReLU(0.1),
+            nn.Linear(256, 128),
+            nn.Tanh(),
+            nn.Linear(128, 1)
+        )
+        
+        # Enhanced Regression Head with more layers
+        self.regressor = nn.Sequential(
+            nn.Linear(768, 384),
+            nn.LeakyReLU(0.1),
+            nn.Dropout(dropout_rate),
+            nn.Linear(384, 192),
+            nn.LeakyReLU(0.1),
+            nn.Dropout(dropout_rate),
+            nn.Linear(192, 64),
+            nn.LeakyReLU(0.1),
+            nn.Dropout(dropout_rate/2),
+            nn.Linear(64, 1)
+        )
+        
+    def attention_net(self, lstm_output):
+        attention_weights = self.attention(lstm_output)
+        attention_weights = torch.softmax(attention_weights, dim=1)
+        context = torch.sum(attention_weights * lstm_output, dim=1)
+        return context
+        
+    def forward(self, x):
+        batch_size = x.size(0)
+        
+        # CNN Feature Extraction
+        cnn_out = self.cnn_features(x)
+        
+        # Reshape for LSTM
+        cnn_out = cnn_out.permute(0, 2, 1, 3)
+        cnn_out = cnn_out.reshape(batch_size, 8, self.lstm_input_size)
+        
+        # LSTM processing
+        lstm_out, _ = self.lstm(cnn_out)
+        
+        # Apply attention
+        context = self.attention_net(lstm_out)
+        
+        # Final regression
+        return self.regressor(context)
+
 # takes in a module and applies the specified weight initialization
 def weights_init_uniform_rule(m):
     classname = m.__class__.__name__
