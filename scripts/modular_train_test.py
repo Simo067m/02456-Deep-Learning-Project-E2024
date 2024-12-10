@@ -10,7 +10,7 @@ from custom_transforms import LoadSpectrogram, NormalizeSpectrogram, ToTensor, I
 from data_management import make_dataset_name
 from check_model_complexity import print_model_complexity
 from models import SpectrVelCNNRegr, weights_init_uniform_rule, SpectrCNN_5_layers, SpectrCNN_5_layers_dropout
-from models import SpectrRNN
+from models import SpectrRNN, SpectrHybridNet1, SpectrHybridNet2, SpectrHybridNet3, SpectrHybridNet4, SpectrHybridNet5
 
 # GROUP NUMBER
 GROUP_NUMBER = 74
