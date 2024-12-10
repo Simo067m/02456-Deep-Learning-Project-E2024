@@ -388,43 +388,41 @@ class SpectrRNN(nn.Module):
             nn.MaxPool2d(kernel_size=2, stride=2)
         )
 
-        self.flatten = nn.Flatten(start_dim=2, end_dim=3)
+        self.flatten = nn.Flatten(start_dim=1, end_dim=3)
 
         self.rnn1 = nn.Sequential(
-            nn.RNN(input_size=15,
-                   hidden_size=10,
+            nn.RNN(input_size=512,
+                   hidden_size=256,
                    dropout=dropout_rate,
                    nonlinearity="tanh",
                    num_layers=5)
         )
 
         self.rnn2 = nn.Sequential(
-            nn.RNN(input_size=10,
-                   hidden_size=5,
+            nn.RNN(input_size=256,
+                   hidden_size=128,
                    dropout=dropout_rate,
                    nonlinearity="tanh",
                    num_layers=5)
         )
-
-        self.flatten2 = nn.Flatten()
         
-        self.linear1 = nn.Linear(in_features=320, out_features=160)
-        self.linear2 = nn.Linear(in_features=160, out_features=10)
+        self.linear1 = nn.Linear(in_features=128, out_features=76)
+        self.linear2 = nn.Linear(in_features=76, out_features=10)
         self.linear3 = nn.Linear(in_features=10, out_features=1)
 
     def forward(self, x):
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)
+        x = self.conv4(x)
         x = self.flatten(x)
         x, _ = self.rnn1(x)
         x, _ = self.rnn2(x)
-        x = self.flatten2(x)
         x = self.linear1(x)
         x = self.linear2(x)
         x = self.linear3(x)
         return x
-    
+
 class ResidualBlock(nn.Module):
     """
     A residual block for a ResNet model.
@@ -618,7 +616,6 @@ class ResNet(nn.Module):
             x = self.fc(x) # Apply the linear projection head
 
             return x
-
 
 class SpectrHybridNet1(nn.Module):
     loss_fn = mse_loss
