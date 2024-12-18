@@ -619,7 +619,7 @@ class SpectrHybridNet1(nn.Module):
     def __init__(self, dropout_rate=0.2):
         super().__init__()
         
-        # Enhanced CNN Feature Extractor
+        # CNN Feature Extractor
         self.cnn_features = nn.Sequential(
             # First Conv Block
             nn.Conv2d(in_channels=6, out_channels=32, kernel_size=5, stride=2),
@@ -642,7 +642,7 @@ class SpectrHybridNet1(nn.Module):
             nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=2),
             nn.BatchNorm2d(64),
             nn.LeakyReLU(0.1),
-            nn.AdaptiveAvgPool2d((8, 25))  # Reduced width for smaller feature size
+            nn.AdaptiveAvgPool2d((8, 25)) 
         )
         
         # Calculate LSTM input size
@@ -665,7 +665,7 @@ class SpectrHybridNet1(nn.Module):
             nn.Linear(64, 1)
         )
         
-        # Enhanced Regression Head
+        # Regression Head
         self.regressor = nn.Sequential(
             nn.Linear(256, 128),
             nn.LeakyReLU(0.1),
@@ -708,7 +708,7 @@ class SpectrHybridNet2(nn.Module):
     def __init__(self, dropout_rate=0.2):
         super().__init__()
         
-        # Increased CNN Feature Extractor
+        # CNN Feature Extractor
         self.cnn_features = nn.Sequential(
             # First Conv Block
             nn.Conv2d(in_channels=6, out_channels=48, kernel_size=5, stride=2),
@@ -734,28 +734,28 @@ class SpectrHybridNet2(nn.Module):
             nn.AdaptiveAvgPool2d((8, 25))
         )
         
-        self.lstm_input_size = 96 * 25  # Increased channels * width
+        self.lstm_input_size = 96 * 25
         
-        # Larger LSTM
+        # LSTM
         self.lstm = nn.LSTM(
             input_size=self.lstm_input_size,
-            hidden_size=192,  # Increased hidden size
-            num_layers=3,     # Added one more layer
+            hidden_size=192, 
+            num_layers=3,
             batch_first=True,
             dropout=dropout_rate,
             bidirectional=True
         )
         
-        # Fixed attention mechanism dimensions
+        # Attention mechanism
         self.attention = nn.Sequential(
             nn.Linear(384, 96),  # 384 from bidirectional LSTM (192*2)
             nn.Tanh(),
             nn.Linear(96, 1)
         )
         
-        # Enhanced Regression Head
+        # Regression Head
         self.regressor = nn.Sequential(
-            nn.Linear(384, 128),  # Changed from 256 to 384
+            nn.Linear(384, 128),
             nn.LeakyReLU(0.1),
             nn.Dropout(dropout_rate),
             nn.Linear(128, 32),
@@ -796,7 +796,7 @@ class SpectrHybridNet3(nn.Module):
     def __init__(self, dropout_rate=0.2):
         super().__init__()
         
-        # Medium-sized CNN Feature Extractor
+        # CNN Feature Extractor
         self.cnn_features = nn.Sequential(
             # First Conv Block
             nn.Conv2d(in_channels=6, out_channels=64, kernel_size=5, stride=2),
@@ -820,7 +820,7 @@ class SpectrHybridNet3(nn.Module):
             nn.BatchNorm2d(128),
             nn.LeakyReLU(0.1),
             
-            # Fourth Conv Block (smaller than large version)
+            # Fourth Conv Block 
             nn.Conv2d(in_channels=128, out_channels=192, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(192),
             nn.LeakyReLU(0.1),
@@ -831,24 +831,24 @@ class SpectrHybridNet3(nn.Module):
         
         self.lstm_input_size = 192 * 25  # Adjusted channels * width
         
-        # Medium-sized LSTM
+        # LSTM
         self.lstm = nn.LSTM(
             input_size=self.lstm_input_size,
-            hidden_size=256,  # Between original and large version
-            num_layers=3,     # Same as original
+            hidden_size=256,
+            num_layers=3,
             batch_first=True,
             dropout=dropout_rate,
             bidirectional=True
         )
         
-        # Medium-sized attention mechanism
+        # Attention mechanism
         self.attention = nn.Sequential(
             nn.Linear(512, 192),  # 512 from bidirectional LSTM (256*2)
             nn.LeakyReLU(0.1),
             nn.Linear(192, 1)
         )
         
-        # Medium-sized Regression Head
+        # Regression Head
         self.regressor = nn.Sequential(
             nn.Linear(512, 256),
             nn.LeakyReLU(0.1),
@@ -928,19 +928,19 @@ class SpectrHybridNet4(nn.Module):
             nn.AdaptiveAvgPool2d((8, 25))
         )
         
-        self.lstm_input_size = 224 * 25  # Adjusted channels * width
+        self.lstm_input_size = 224 * 25 
         
-        # Larger LSTM
+        # LSTM
         self.lstm = nn.LSTM(
             input_size=self.lstm_input_size,
-            hidden_size=320,  # Increased from medium version
+            hidden_size=320,
             num_layers=3,
             batch_first=True,
             dropout=dropout_rate,
             bidirectional=True
         )
         
-        # Enhanced attention mechanism
+        # Attention mechanism
         self.attention = nn.Sequential(
             nn.Linear(640, 224),  # 640 from bidirectional LSTM (320*2)
             nn.LeakyReLU(0.1),
@@ -949,7 +949,7 @@ class SpectrHybridNet4(nn.Module):
             nn.Linear(96, 1)
         )
         
-        # Enhanced Regression Head
+        # Regression Head
         self.regressor = nn.Sequential(
             nn.Linear(640, 320),
             nn.LeakyReLU(0.1),
@@ -996,9 +996,9 @@ class SpectrHybridNet5(nn.Module):
     def __init__(self, dropout_rate=0.2):
         super().__init__()
         
-        # Increased CNN Feature Extractor with more channels and layers
+        # CNN Feature Extractor
         self.cnn_features = nn.Sequential(
-            # First Conv Block - Increased channels
+            # First Conv Block
             nn.Conv2d(in_channels=6, out_channels=96, kernel_size=5, stride=2),
             nn.BatchNorm2d(96),
             nn.LeakyReLU(0.1),
@@ -1018,12 +1018,12 @@ class SpectrHybridNet5(nn.Module):
             nn.MaxPool2d(2),
             nn.Dropout2d(dropout_rate),
             
-            # Third Conv Block - Increased channels
+            # Third Conv Block
             nn.Conv2d(in_channels=96, out_channels=192, kernel_size=3, stride=2),
             nn.BatchNorm2d(192),
             nn.LeakyReLU(0.1),
             
-            # Fourth Conv Block (additional)
+            # Fourth Conv Block
             nn.Conv2d(in_channels=192, out_channels=256, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(256),
             nn.LeakyReLU(0.1),
@@ -1034,17 +1034,17 @@ class SpectrHybridNet5(nn.Module):
         
         self.lstm_input_size = 256 * 25  # Increased channels * width
         
-        # Larger LSTM with more layers and hidden units
+        # LSTM
         self.lstm = nn.LSTM(
             input_size=self.lstm_input_size,
-            hidden_size=384,  # Doubled hidden size
-            num_layers=4,     # Added another layer
+            hidden_size=384,
+            num_layers=4, 
             batch_first=True,
             dropout=dropout_rate,
             bidirectional=True
         )
         
-        # Enhanced attention mechanism with more units
+        # Attention mechanism
         self.attention = nn.Sequential(
             nn.Linear(768, 256),  # 768 from bidirectional LSTM (384*2)
             nn.LeakyReLU(0.1),
@@ -1053,7 +1053,7 @@ class SpectrHybridNet5(nn.Module):
             nn.Linear(128, 1)
         )
         
-        # Enhanced Regression Head with more layers
+        # Regression Head
         self.regressor = nn.Sequential(
             nn.Linear(768, 384),
             nn.LeakyReLU(0.1),
